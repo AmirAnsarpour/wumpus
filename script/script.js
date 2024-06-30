@@ -76,7 +76,7 @@ function updateGrid() {
 }
 
 function updateMessages() {
-    if (playerPosition === wampusPosition && !hasGold) {
+    if (playerPosition === wampusPosition) {
         messages.textContent = 'ومپوس شما را کشت! بازی تمام شد!';
         gameEnded = true;
         updateGrid();
