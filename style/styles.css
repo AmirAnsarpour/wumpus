@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap');
+
+body {
+    font-family: "Vazirmatn", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    text-align: center;
+    background-color: #000;
+    color: #fff;
+    direction: rtl;
+}
+
+#game {
+    display: inline-block;
+    margin-top: 50px;
+}
+
+
+#grid {
+    display: grid;
+    grid-template-columns: repeat(5, 80px);
+    grid-gap: 5px;
+    margin: 20px auto;
+}
+
+.cell {
+    width: 80px;
+    height: 80px;
+    background-color: #444;
+    border: 1px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    color: #fff;
+}
+
+.cell.revealed {
+    background-color: #222;
+}
+
+button{
+    font-family: "Vazirmatn", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    text-align: center;
+}
