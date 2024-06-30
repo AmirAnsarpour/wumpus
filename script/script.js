@@ -1,3 +1,17 @@
+document.addEventListener('DOMContentLoaded', () => {
+    showDialog();
+});
+
+function showDialog() {
+    const dialog = document.getElementById('dialog');
+    dialog.style.display = 'flex';
+}
+
+function closeDialog() {
+    const dialog = document.getElementById('dialog');
+    dialog.style.display = 'none';
+}
+
 const grid = document.getElementById('grid');
 const messages = document.getElementById('messages');
 const gridSize = 5;
