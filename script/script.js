@@ -3,23 +3,39 @@ const messages = document.getElementById('messages');
 const gridSize = 5;
 let wampusPosition;
 let pitPositions = [];
+let goldPosition;
 let playerPosition;
 let gameEnded = false;
+let lastMoveDirection;
+let hasArrow = true;
+let hasGold = false;
 
 function startGame() {
     grid.innerHTML = '';
     messages.innerHTML = '';
-    wampusPosition = Math.floor(Math.random() * gridSize * gridSize);
+    wampusPosition = getRandomPositionExcluding([0]);
     pitPositions = [];
     while (pitPositions.length < 3) {
-        const pit = Math.floor(Math.random() * gridSize * gridSize);
-        if (pit !== wampusPosition && !pitPositions.includes(pit)) {
+        const pit = getRandomPositionExcluding([0, wampusPosition]);
+        if (!pitPositions.includes(pit)) {
             pitPositions.push(pit);
         }
     }
+    goldPosition = getRandomPositionExcluding([0, wampusPosition, ...pitPositions]);
     playerPosition = 0;
     gameEnded = false;
+    hasArrow = true;
+    hasGold = false;
+    lastMoveDirection = null;
     createGrid();
+}
+
+function getRandomPositionExcluding(exclusions) {
+    let position;
+    do {
+        position = Math.floor(Math.random() * gridSize * gridSize);
+    } while (exclusions.includes(position));
+    return position;
 }
 
 function createGrid() {
@@ -41,13 +57,16 @@ function updateGrid() {
         if (index === playerPosition) {
             cell.classList.add('revealed');
             cell.textContent = 'Player';
-        } else if (gameEnded) {
+        } else if (gameEnded || hasGold) {
             if (index === wampusPosition) {
                 cell.classList.add('revealed');
                 cell.textContent = 'Wampus';
             } else if (pitPositions.includes(index)) {
                 cell.classList.add('revealed');
                 cell.textContent = 'Pit';
+            } else if (index === goldPosition) {
+                cell.classList.add('revealed');
+                cell.textContent = 'Gold';
             }
         } else {
             cell.textContent = '';
@@ -57,8 +76,8 @@ function updateGrid() {
 }
 
 function updateMessages() {
-    if (playerPosition === wampusPosition) {
-        messages.textContent = 'شما برنده شدید!';
+    if (playerPosition === wampusPosition && !hasGold) {
+        messages.textContent = 'ومپوس شما را کشت! بازی تمام شد!';
         gameEnded = true;
         updateGrid();
         endGame();
@@ -67,32 +86,60 @@ function updateMessages() {
         gameEnded = true;
         updateGrid();
         endGame();
+    } else if (playerPosition === goldPosition) {
+        messages.textContent = 'شما طلا را پیدا کردید! حالا باید به خانه برگردید!';
+        hasGold = true;
+        updateGrid();
+    } else if (playerPosition === 0 && hasGold) {
+        messages.textContent = 'شما برنده شدید! طلا را به خانه آوردید!';
+        gameEnded = true;
+        updateGrid();
+        endGame();
     } else {
-        if (isNearPit()) {
-            messages.textContent = 'حواستون باشه! نزدیک گودال هستید!';
-        } else if (isNearWampus()) {
-            messages.textContent = 'خیلی نزدیک به پیروزی هستین!';
-        } else {
-            messages.textContent = 'به جستجو ادامه دهید.';
+        let message = 'به جستجو ادامه دهید...';
+        if (isNear(wampusPosition)) {
+            message = 'بوی بد میاد!';
+        } else if (isNear(goldPosition)) {
+            message = 'نور می‌بینم!';
+        } else if (isNearPit()) {
+            message = 'حواستون باشه! نزدیک گودال هستید!';
         }
+        messages.textContent = message;
     }
 }
 
-function isNearPit() {
-    return pitPositions.some(pit => {
-        return Math.abs(pit - playerPosition) === 1 || Math.abs(pit - playerPosition) === gridSize;
-    });
+function isNear(position) {
+    return Math.abs(position - playerPosition) === 1 || Math.abs(position - playerPosition) === gridSize;
 }
 
-function isNearWampus() {
-    return Math.abs(wampusPosition - playerPosition) === 1 || Math.abs(wampusPosition - playerPosition) === gridSize;
+function isNearPit() {
+    return pitPositions.some(pit => isNear(pit));
 }
 
 function movePlayer(index) {
     if (gameEnded) return;
     if (Math.abs(index - playerPosition) === 1 || Math.abs(index - playerPosition) === gridSize) {
+        lastMoveDirection = index - playerPosition;
         playerPosition = index;
         updateGrid();
+    }
+}
+
+function shoot() {
+    if (!hasArrow || gameEnded) return;
+    hasArrow = false;
+    let targetPosition = playerPosition;
+    while (true) {
+        targetPosition += lastMoveDirection;
+        if (targetPosition < 0 || targetPosition >= gridSize * gridSize || (lastMoveDirection === 1 && targetPosition % gridSize === 0) || (lastMoveDirection === -1 && targetPosition % gridSize === gridSize - 1)) {
+            messages.textContent = 'تیر به دیوار برخورد کرد!';
+            break;
+        }
+        if (targetPosition === wampusPosition) {
+            messages.textContent = 'ومپوس را کشتی!';
+            wampusPosition = -1; // Remove the wampus
+            break;
+        }
     }
 }
 
